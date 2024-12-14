@@ -1,35 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
+import { getCards, addCard, deleteCard } from "./api/cards";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [cards, setCards] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Получаем карточки при загрузке страницы
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  const fetchCards = async () => {
+    const data = await getCards();
+    setCards(data);
+  };
+
+  const handleAddCard = async () => {
+    const newCard = { title, description, image_url: imageUrl, user_id: 1 };
+    await addCard(newCard);
+    fetchCards();
+    // Сбрасываем поля ввода
+    setTitle("");
+    setDescription("");
+    setImageUrl("");
+  };
+
+  const handleDeleteCard = async (id) => {
+    await deleteCard(id);
+    fetchCards();
+  };
 
   return (
-    <>
+    <div style={{ padding: "20px" }}>
+      <h1>Пасхалки из игр</h1>
+
+      {/* Форма для добавления карточки */}
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <input
+          type="text"
+          placeholder="Название пасхалки"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Описание"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="URL изображения"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+        />
+        <button onClick={handleAddCard}>Добавить</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+
+      {/* Сетка карточек */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginTop: "20px" }}>
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              textAlign: "center",
+            }}
+          >
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
+            <img src={card.image_url} alt={card.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+            <button onClick={() => handleDeleteCard(card.id)}>Удалить</button>
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
